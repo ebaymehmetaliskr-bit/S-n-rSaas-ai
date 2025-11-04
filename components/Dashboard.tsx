@@ -2,22 +2,73 @@ import React, { useState, useMemo } from 'react';
 import { CheckCircleIcon, SendIcon } from './Icons';
 import Modal from './Modal';
 import PetitionGenerator from './PetitionGenerator';
+import { IncomeEntry } from '../types';
 
 const EXEMPTION_LIMIT = 1900000;
 
+// Placeholder for exchange rates. In a real app, this would be fetched.
+const MOCK_RATES = {
+    USD: 32.5,
+    EUR: 35.0,
+    GBP: 40.0,
+};
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(value);
+};
+
 const Dashboard: React.FC = () => {
     const [isPetitionModalOpen, setIsPetitionModalOpen] = useState(false);
-    const [currentIncome, setCurrentIncome] = useState(450000);
+    
+    const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([
+        { id: 1, date: '2025-11-01', description: 'Gumroad Satışı #123', amount: 5000, currency: 'USD', exchangeRate: 30.50, tryValue: 152500 },
+        { id: 2, date: '2025-11-03', description: 'Stripe Ödemesi #ABC', amount: 8000, currency: 'EUR', exchangeRate: 33.00, tryValue: 264000 },
+        { id: 3, date: '2025-11-05', description: 'Patreon Destek', amount: 1000, currency: 'USD', exchangeRate: 31.00, tryValue: 31000 },
+    ]);
+
+    // Form state for new income
+    const [newAmount, setNewAmount] = useState('');
+    const [newCurrency, setNewCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD');
+    const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+    const [newDescription, setNewDescription] = useState('');
+
+    const totalIncomeTRY = useMemo(() => {
+        return incomeEntries.reduce((total, entry) => total + entry.tryValue, 0);
+    }, [incomeEntries]);
 
     const progressPercentage = useMemo(() => {
-        return Math.min((currentIncome / EXEMPTION_LIMIT) * 100, 100);
-    }, [currentIncome]);
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(value);
-    };
+        return Math.min((totalIncomeTRY / EXEMPTION_LIMIT) * 100, 100);
+    }, [totalIncomeTRY]);
     
-    const remainingAmount = useMemo(() => EXEMPTION_LIMIT - currentIncome, [currentIncome]);
+    const remainingAmount = useMemo(() => EXEMPTION_LIMIT - totalIncomeTRY, [totalIncomeTRY]);
+
+    const handleAddIncome = (e: React.FormEvent) => {
+        e.preventDefault();
+        const amount = parseFloat(newAmount);
+        if (!amount || amount <= 0 || !newDescription.trim() || !newDate) {
+            alert('Lütfen tüm alanları geçerli bir şekilde doldurun.');
+            return;
+        }
+
+        const exchangeRate = MOCK_RATES[newCurrency];
+        const newEntry: IncomeEntry = {
+            id: Date.now(),
+            date: newDate,
+            description: newDescription.trim(),
+            amount: amount,
+            currency: newCurrency,
+            exchangeRate: exchangeRate,
+            tryValue: amount * exchangeRate,
+        };
+
+        setIncomeEntries(prevEntries => [newEntry, ...prevEntries]);
+        
+        // Reset form
+        setNewAmount('');
+        setNewDescription('');
+        setNewDate(new Date().toISOString().split('T')[0]);
+        setNewCurrency('USD');
+    };
 
     return (
         <>
@@ -31,18 +82,18 @@ const Dashboard: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900">GVK 20/B (Sosyal Medya) Yıllık İstisna Limiti (2025)</h2>
                         <div className="mt-4">
                             <div className="w-full bg-gray-200 rounded-full h-4">
-                                <div className="bg-blue-600 h-4 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+                                <div className="bg-blue-600 h-4 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
                             </div>
                             <div className="mt-3 flex justify-between items-center text-sm font-medium">
-                                <span className="text-gray-600">Kullanılan Tutar: <span className="text-gray-900 font-bold">{formatCurrency(currentIncome)}</span></span>
+                                <span className="text-gray-600">Kullanılan Tutar: <span className="text-gray-900 font-bold">{formatCurrency(totalIncomeTRY)}</span></span>
                                 <span className="text-gray-600">Kalan Hak: <span className="text-green-600 font-bold">{formatCurrency(remainingAmount)}</span></span>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">Toplam Yıllık Limit: {formatCurrency(EXEMPTION_LIMIT)}</p>
                         </div>
                         <div className="mt-5 text-right">
-                             <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                             <a href="#income-tracker" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
                                 + Yeni Gelir Ekle
-                            </button>
+                            </a>
                         </div>
                     </div>
 
@@ -94,6 +145,70 @@ const Dashboard: React.FC = () => {
                                 <button className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                                     <SendIcon className="w-5 h-5" />
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Income Tracker Widget */}
+                    <div id="income-tracker" className="lg:col-span-3 bg-white p-6 rounded-lg shadow-md border border-gray-200 scroll-mt-20">
+                        <h2 className="text-lg font-semibold text-gray-900">Gelir Takibi</h2>
+                        
+                        {/* Add Income Form */}
+                        <form onSubmit={handleAddIncome} className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                            <div className="md:col-span-2">
+                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Açıklama</label>
+                                <input type="text" id="description" value={newDescription} onChange={e => setNewDescription(e.target.value)} placeholder="Örn: Stripe Ödemesi #XYZ" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                            </div>
+                            <div>
+                                <label htmlFor="date" className="block text-sm font-medium text-gray-700">Tarih</label>
+                                <input type="date" id="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                            </div>
+                            <div>
+                                <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Tutar</label>
+                                <input type="number" id="amount" value={newAmount} onChange={e => setNewAmount(e.target.value)} placeholder="150" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                            </div>
+                            <div>
+                                <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Para Birimi</label>
+                                <select id="currency" value={newCurrency} onChange={e => setNewCurrency(e.target.value as 'USD' | 'EUR' | 'GBP')} className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option>USD</option>
+                                    <option>EUR</option>
+                                    <option>GBP</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="submit" className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    Gelir Ekle
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Income History */}
+                        <div className="mt-6 flow-root">
+                           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                                <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                                        <table className="min-w-full divide-y divide-gray-300">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Tarih</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Açıklama</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tutar</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">TL Karşılığı</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200 bg-white">
+                                                {incomeEntries.map((entry) => (
+                                                    <tr key={entry.id}>
+                                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{new Date(entry.date).toLocaleDateString('tr-TR')}</td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{entry.description}</td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{entry.amount.toFixed(2)} {entry.currency} <span className="text-xs text-gray-400">(@{entry.exchangeRate.toFixed(2)})</span></td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-700">{formatCurrency(entry.tryValue)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

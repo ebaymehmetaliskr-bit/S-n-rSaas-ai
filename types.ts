@@ -14,3 +14,13 @@ export interface ExchangeRate {
   buying: string;
   selling: string;
 }
+
+export interface IncomeEntry {
+  id: number;
+  date: string;
+  description: string;
+  amount: number;
+  currency: 'USD' | 'EUR' | 'GBP';
+  exchangeRate: number;
+  tryValue: number;
+}
