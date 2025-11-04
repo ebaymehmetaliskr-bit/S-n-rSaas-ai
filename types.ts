@@ -24,3 +24,17 @@ export interface IncomeEntry {
   exchangeRate: number;
   tryValue: number;
 }
+
+export interface Task {
+  id: number;
+  text: string;
+  details: string;
+  completed: boolean;
+  completedDate?: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  text: string;
+  sender: 'user' | 'ai';
+}

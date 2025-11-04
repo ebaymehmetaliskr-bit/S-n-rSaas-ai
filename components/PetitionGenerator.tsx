@@ -10,7 +10,7 @@ const InputField: React.FC<{
   placeholder: string;
 }> = ({ label, id, value, onChange, placeholder }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-slate-400 mb-1">
+    <label htmlFor={id} className="block text-sm font-medium text-gray-500 mb-1">
       {label}
     </label>
     <input
@@ -20,7 +20,7 @@ const InputField: React.FC<{
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full bg-slate-800/60 border border-slate-700 rounded-md shadow-sm px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+      className="w-full bg-white border border-gray-300 rounded-md shadow-sm px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
     />
   </div>
 );
@@ -50,13 +50,12 @@ const PetitionGenerator: React.FC = () => {
     setIsSuccess(false);
     setLoadError(null);
 
-    // Access docx and saveAs from the window object, where they are placed by the CDN scripts.
     const docx = (window as any).docx;
     const saveAs = (window as any).saveAs;
 
     if (!docx || !saveAs) {
-      const errorMessage = "Gerekli kütüphaneler yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyin.";
-      console.error("docx or FileSaver library not found on window object.");
+      const errorMessage = "Gerekli kütüphaneler (docx, FileSaver) yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyin.";
+      console.error(errorMessage);
       setLoadError(errorMessage);
       setIsLoading(false);
       return;
@@ -140,21 +139,21 @@ const PetitionGenerator: React.FC = () => {
 
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-2xl shadow-slate-950/50 overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
       <div className="p-6 sm:p-8">
         <div className="flex items-center mb-6">
-          <div className="bg-cyan-500/10 p-3 rounded-lg">
-            <FileTextIcon className="h-6 w-6 text-cyan-400" />
+          <div className="bg-blue-100 p-3 rounded-lg">
+            <FileTextIcon className="h-6 w-6 text-blue-600" />
           </div>
           <div className="ml-4">
-            <h2 className="text-xl font-bold text-slate-100">Dilekçe Oluşturucu</h2>
-            <p className="text-sm text-slate-400">Sosyal Medya Vergi İstisnası için başvuru dilekçenizi oluşturun.</p>
+            <h2 className="text-xl font-bold text-gray-900">Dilekçe Oluşturucu</h2>
+            <p className="text-sm text-gray-500">Sosyal Medya Vergi İstisnası için başvuru dilekçenizi oluşturun.</p>
           </div>
         </div>
 
-        <div className="bg-slate-900/50 p-6 rounded-lg border border-slate-700">
-            <h3 className="text-lg font-semibold text-slate-200 flex items-center mb-4">
-                <UserIcon className="h-5 w-5 mr-2 text-slate-400"/>
+        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-4">
+                <UserIcon className="h-5 w-5 mr-2 text-gray-400"/>
                 Kullanıcı Bilgileri
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,7 +174,7 @@ const PetitionGenerator: React.FC = () => {
         </div>
 
         {loadError && (
-          <div className="mt-6 p-3 bg-red-500/10 border border-red-500/30 rounded-md text-red-300 text-sm">
+          <div className="mt-6 p-3 bg-red-100 border border-red-200 rounded-md text-red-700 text-sm">
             {loadError}
           </div>
         )}
@@ -184,10 +183,10 @@ const PetitionGenerator: React.FC = () => {
             <button
                 onClick={handleGeneratePetition}
                 disabled={isLoading}
-                className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 transition-all duration-300 ease-in-out transform hover:scale-105
-                ${isLoading ? 'bg-slate-600 cursor-not-allowed' : 
+                className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out transform hover:scale-105
+                ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 
                 isSuccess ? 'bg-green-600' :
-                'bg-cyan-600 hover:bg-cyan-700'
+                'bg-blue-600 hover:bg-blue-700'
                 }`}
             >
                 {isLoading ? (

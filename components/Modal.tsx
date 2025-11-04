@@ -31,7 +31,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, children }) => {
       aria-modal="true"
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-4xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button

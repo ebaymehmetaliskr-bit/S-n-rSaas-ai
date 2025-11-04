@@ -9,6 +9,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                600: '#3B82F6', // blue-500
+                700: '#2563EB'  // blue-600
+              },
+              dark: {
+                800: '#1F2937' // gray-800
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Gerekli Kütüphaneler: Dilekçe oluşturma için eklendi -->
+    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
   <script type="importmap">
 {
   "imports": {
@@ -21,8 +41,6 @@
 </head>
   <body class="font-sans bg-gray-50 antialiased">
     <div id="root"></div>
-    <script src="https://unpkg.com/docx@8.2.2/build/index.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
