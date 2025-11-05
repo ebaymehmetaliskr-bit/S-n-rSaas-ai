@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, SparklesIcon, UserIcon } from './Icons';
+import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, LoaderIcon, SparklesIcon, UserIcon } from './Icons';
 import { UserProfile } from '../types';
+import * as authService from '../services/authService';
 
 interface WizardProps {
     onComplete: (profile: UserProfile) => void;
@@ -53,6 +54,8 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
         address: '',
         phone: '',
     });
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleNext = () => {
         if (currentStep < steps.length) {
@@ -86,22 +89,32 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
         }
     }
     
-    const handleComplete = () => {
-        // Here, we would typically send the 'answers' and 'profile' state to the backend API.
-        // For now, we'll just pass the complete profile to the parent component.
-        const completeProfile: UserProfile = {
-            firstName: profile.firstName || '',
-            lastName: profile.lastName || '',
-            email: profile.email || '',
-            password: profile.password || '',
-            tcKimlikNo: profile.tcKimlikNo || '11111111111',
-            taxId: profile.taxId || '0000000000',
-            taxOffice: profile.taxOffice || 'Şişli Vergi Dairesi',
-            address: profile.address || 'Örnek Mah. Test Sk.',
-            phone: profile.phone || '05550000000',
-            ...answers, // Add quiz answers to the profile data if needed later
-        };
-        onComplete(completeProfile);
+    const handleComplete = async () => {
+        setIsRegistering(true);
+        setError(null);
+        try {
+            const completeProfile: UserProfile = {
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
+                email: profile.email || '',
+                password: profile.password || '',
+                tcKimlikNo: profile.tcKimlikNo || '11111111111',
+                taxId: profile.taxId || '0000000000',
+                taxOffice: profile.taxOffice || 'Şişli Vergi Dairesi',
+                address: profile.address || 'Örnek Mah. Test Sk.',
+                phone: profile.phone || '05550000000',
+                ...answers, 
+            };
+            
+            const registeredUser = await authService.register(completeProfile);
+            onComplete(registeredUser as UserProfile);
+
+        } catch (err) {
+            setError("Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.");
+            console.error(err);
+        } finally {
+            setIsRegistering(false);
+        }
     }
     
     const progressPercentage = ((currentStep) / (steps.length)) * 100;
@@ -179,11 +192,20 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
                     <div className="mt-8">
                          <button
                             onClick={handleComplete}
-                            className="w-full max-w-xs inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            disabled={isRegistering}
+                            className="w-full max-w-xs inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
                         >
-                            🚀 Panelimi Oluştur & Başla
+                            {isRegistering ? (
+                                <>
+                                    <LoaderIcon className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                                    Hesap Oluşturuluyor...
+                                </>
+                            ) : (
+                                '🚀 Panelimi Oluştur & Başla'
+                            )}
                         </button>
                     </div>
+                    {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
                     <button onClick={handleBack} className="mt-4 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300">Geri dön ve cevapları değiştir</button>
                 </div>
             )}
