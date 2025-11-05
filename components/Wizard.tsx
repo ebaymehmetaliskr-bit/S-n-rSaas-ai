@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, SparklesIcon } from './Icons';
+import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, SparklesIcon, UserIcon } from './Icons';
+import { UserProfile } from '../types';
 
 interface WizardProps {
-    onComplete: () => void;
+    onComplete: (profile: UserProfile) => void;
     onClose: () => void;
 }
 
@@ -30,11 +31,28 @@ const steps = [
         ],
         key: 'companyStatus'
     },
+    {
+        title: "Hesap Oluştur",
+        subtitle: "Panelinize erişmek ve verilerinizi güvenle saklamak için temel bilgilerinizi girin.",
+        question: "Kullanıcı ve Dilekçe Bilgileri",
+        isForm: true, // Indicates this step has a form instead of options
+    }
 ];
 
 const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [answers, setAnswers] = useState<{[key: string]: string}>({});
+    const [profile, setProfile] = useState<Partial<UserProfile>>({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        tcKimlikNo: '',
+        taxId: '',
+        taxOffice: '',
+        address: '',
+        phone: '',
+    });
 
     const handleNext = () => {
         if (currentStep < steps.length) {
@@ -52,6 +70,39 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
         setAnswers(prev => ({ ...prev, [key]: option }));
         handleNext();
     }
+
+    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setProfile(prev => ({...prev, [name]: value}));
+    }
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Simple validation
+        if (profile.firstName && profile.lastName && profile.email && profile.password && profile.password.length >= 6) {
+             handleNext();
+        } else {
+            alert('Lütfen tüm zorunlu alanları doldurun ve şifrenizin en az 6 karakter olduğundan emin olun.');
+        }
+    }
+    
+    const handleComplete = () => {
+        // Here, we would typically send the 'answers' and 'profile' state to the backend API.
+        // For now, we'll just pass the complete profile to the parent component.
+        const completeProfile: UserProfile = {
+            firstName: profile.firstName || '',
+            lastName: profile.lastName || '',
+            email: profile.email || '',
+            password: profile.password || '',
+            tcKimlikNo: profile.tcKimlikNo || '11111111111',
+            taxId: profile.taxId || '0000000000',
+            taxOffice: profile.taxOffice || 'Şişli Vergi Dairesi',
+            address: profile.address || 'Örnek Mah. Test Sk.',
+            phone: profile.phone || '05550000000',
+            ...answers, // Add quiz answers to the profile data if needed later
+        };
+        onComplete(completeProfile);
+    }
     
     const progressPercentage = ((currentStep) / (steps.length)) * 100;
 
@@ -64,24 +115,47 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
 
             <div className="p-8">
             {currentStep < steps.length ? (
-                // Question Steps
+                // Question/Form Steps
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{steps[currentStep].title}</h2>
                     <p className="mt-1 text-gray-600 dark:text-slate-400">{steps[currentStep].subtitle}</p>
                     
                     <div className="mt-8">
-                        <label className="text-lg font-semibold text-gray-800 dark:text-slate-200">{steps[currentStep].question}</label>
-                        <div className="mt-4 space-y-3">
-                            {steps[currentStep].options.map(option => (
-                                <button
-                                    key={option}
-                                    onClick={() => handleSelectOption(steps[currentStep].key, option)}
-                                    className="w-full text-left p-4 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 dark:text-slate-200"
-                                >
-                                    {option}
-                                </button>
-                            ))}
-                        </div>
+                       {steps[currentStep].isForm ? (
+                           <form onSubmit={handleFormSubmit}>
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                   <InputField label="Ad" name="firstName" value={profile.firstName!} onChange={handleProfileChange} required />
+                                   <InputField label="Soyad" name="lastName" value={profile.lastName!} onChange={handleProfileChange} required />
+                                   <div className="md:col-span-2">
+                                       <InputField label="E-posta" name="email" type="email" value={profile.email!} onChange={handleProfileChange} required />
+                                   </div>
+                                   <div className="md:col-span-2">
+                                       <InputField label="Şifre (en az 6 karakter)" name="password" type="password" value={profile.password!} onChange={handleProfileChange} required />
+                                   </div>
+                               </div>
+                                <div className="mt-8 flex justify-end">
+                                    <button type="submit" className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                                        Devam Et
+                                        <ArrowRightIcon className="w-4 h-4 ml-2"/>
+                                    </button>
+                                </div>
+                           </form>
+                       ) : (
+                            <div>
+                                <label className="text-lg font-semibold text-gray-800 dark:text-slate-200">{steps[currentStep].question}</label>
+                                <div className="mt-4 space-y-3">
+                                    {steps[currentStep].options.map(option => (
+                                        <button
+                                            key={option}
+                                            onClick={() => handleSelectOption(steps[currentStep].key, option)}
+                                            className="w-full text-left p-4 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 dark:text-slate-200"
+                                        >
+                                            {option}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                       )}
                     </div>
                      <div className="mt-8 flex justify-between items-center">
                         <button 
@@ -91,7 +165,7 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
                             <ArrowLeftIcon className="w-4 h-4 mr-2"/>
                             Geri
                         </button>
-                        <span className="text-sm text-gray-500 dark:text-slate-400">Adım {currentStep + 1} / {steps.length}</span>
+                        <span className="text-sm text-gray-500 dark:text-slate-400">Adım {currentStep + 1} / {steps.length + 1}</span>
                     </div>
                 </div>
             ) : (
@@ -104,7 +178,7 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
                     </p>
                     <div className="mt-8">
                          <button
-                            onClick={onComplete}
+                            onClick={handleComplete}
                             className="w-full max-w-xs inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             🚀 Panelimi Oluştur & Başla
@@ -117,5 +191,17 @@ const Wizard: React.FC<WizardProps> = ({ onComplete, onClose }) => {
         </div>
     );
 };
+
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+    <div>
+        <label htmlFor={props.name} className="block text-sm font-medium text-gray-700 dark:text-slate-300">{label}</label>
+        <input
+            id={props.name}
+            {...props}
+            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-slate-100"
+        />
+    </div>
+);
+
 
 export default Wizard;

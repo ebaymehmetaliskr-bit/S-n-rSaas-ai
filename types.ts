@@ -6,6 +6,8 @@ export interface UserProfile {
   address: string;
   taxId: string;
   phone: string;
+  email: string;
+  password?: string; // Optional as we won't store it in frontend state long-term
 }
 
 export interface ExchangeRate {

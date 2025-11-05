@@ -3,9 +3,10 @@ import Modal from './Modal';
 import Wizard from './Wizard';
 import SocialProof from './SocialProof';
 import ThemeToggle from './ThemeToggle';
+import { UserProfile } from '../types';
 
 interface LandingPageProps {
-  onLogin: () => void;
+  onLogin: (profile: UserProfile) => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
@@ -15,9 +16,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     setIsWizardOpen(true);
   };
   
-  const handleWizardComplete = () => {
+  const handleWizardComplete = (profile: UserProfile) => {
     setIsWizardOpen(false);
-    onLogin();
+    // Simulate a successful registration by logging the user in with the profile data
+    onLogin(profile);
   };
 
   return (
@@ -33,7 +35,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <div className="hidden md:flex md:items-center md:space-x-8">
                 <a href="#features" className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Özellikler</a>
                 <a href="#" className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Fiyatlandırma</a>
-                <button onClick={onLogin} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Giriş Yap</button>
+                <button onClick={() => alert("Login modal will be implemented in the next step.")} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Giriş Yap</button>
                 <ThemeToggle />
                 <button onClick={handleStartWizard} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
                   ÜCRETSİZ TESTE BAŞLA

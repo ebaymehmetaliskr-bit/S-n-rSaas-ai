@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { DownloadIcon, FileTextIcon, LoaderIcon, UserIcon } from './Icons';
 
@@ -8,13 +8,14 @@ const InputField: React.FC<{
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder: string;
-}> = ({ label, id, value, onChange, placeholder }) => (
+  type?: string;
+}> = ({ label, id, value, onChange, placeholder, type = "text" }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">
       {label}
     </label>
     <input
-      type="text"
+      type={type}
       id={id}
       name={id}
       value={value}
@@ -25,20 +26,20 @@ const InputField: React.FC<{
   </div>
 );
 
-const PetitionGenerator: React.FC = () => {
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    firstName: 'Ahmet',
-    lastName: 'Yılmaz',
-    tcKimlikNo: '12345678901',
-    taxOffice: 'Şişli Vergi Dairesi',
-    address: 'Örnek Mah. Test Sk. No:1 D:2 Şişli/İstanbul',
-    taxId: '9876543210',
-    phone: '0555 123 45 67',
-  });
+interface PetitionGeneratorProps {
+    userProfile: UserProfile;
+}
+
+const PetitionGenerator: React.FC<PetitionGeneratorProps> = ({ userProfile: initialProfile }) => {
+  const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    setUserProfile(initialProfile);
+  }, [initialProfile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -154,7 +155,7 @@ const PetitionGenerator: React.FC = () => {
         <div className="bg-gray-50 dark:bg-slate-700/50 p-6 rounded-lg border border-gray-200 dark:border-slate-600">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-slate-200 flex items-center mb-4">
                 <UserIcon className="h-5 w-5 mr-2 text-gray-400 dark:text-slate-400"/>
-                Kullanıcı Bilgileri
+                Kullanıcı Bilgileri (Düzenlenebilir)
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField label="Ad" id="firstName" value={userProfile.firstName} onChange={handleInputChange} placeholder="Adınız" />
@@ -169,6 +170,9 @@ const PetitionGenerator: React.FC = () => {
                 </div>
                 <div className="md:col-span-2">
                     <InputField label="Telefon Numarası" id="phone" value={userProfile.phone} onChange={handleInputChange} placeholder="05XX XXX XX XX" />
+                </div>
+                 <div className="md:col-span-2">
+                    <InputField label="E-posta" id="email" value={userProfile.email} onChange={handleInputChange} placeholder="iletisim@ornek.com" type="email" />
                 </div>
             </div>
         </div>

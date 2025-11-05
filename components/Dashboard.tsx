@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { BotIcon, CheckCircleIcon, LoaderIcon, SendIcon, UserIcon, XIcon } from './Icons';
 import Modal from './Modal';
 import PetitionGenerator from './PetitionGenerator';
-import { IncomeEntry, Task, ChatMessage } from '../types';
+import { IncomeEntry, Task, ChatMessage, UserProfile } from '../types';
 import { useNotifications } from '../contexts/NotificationContext';
 import ExchangeRateBot from './ExchangeRateBot';
 
@@ -97,9 +97,10 @@ const AddIncomeModal: React.FC<{
 
 interface DashboardProps {
     setActiveSection: (section: string) => void;
+    userProfile: UserProfile;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ setActiveSection }) => {
+const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) => {
     const [isPetitionModalOpen, setIsPetitionModalOpen] = useState(false);
     const [isAddIncomeModalOpen, setIsAddIncomeModalOpen] = useState(false);
     const { addNotification } = useNotifications();
@@ -234,7 +235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection }) => {
         <>
             <main className="flex-1 h-screen overflow-y-auto p-6 md:p-10 scroll-smooth">
                 <h1 ref={homeRef} id="home" className="text-3xl font-bold text-gray-900 dark:text-slate-100 scroll-mt-20">Panelim</h1>
-                <p className="mt-1 text-gray-600 dark:text-slate-400">Merhaba Ahmet, istisna sürecine genel bakışın burada.</p>
+                <p className="mt-1 text-gray-600 dark:text-slate-400">Merhaba {userProfile.firstName}, istisna sürecine genel bakışın burada.</p>
 
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Exemption Tracker Widget */}
@@ -402,7 +403,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection }) => {
             
             {/* Modal for Petition Generator */}
             <Modal isOpen={isPetitionModalOpen} onClose={() => setIsPetitionModalOpen(false)}>
-                <PetitionGenerator />
+                <PetitionGenerator userProfile={userProfile} />
             </Modal>
             
             {/* Modal for Adding Income */}
