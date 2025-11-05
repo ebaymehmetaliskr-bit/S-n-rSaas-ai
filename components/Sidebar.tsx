@@ -1,11 +1,18 @@
-import React from 'react';
-import { HomeIcon, ChecklistIcon, DollarIcon, SparklesIcon, LogoutIcon } from './Icons';
+import React, { useState } from 'react';
+import { HomeIcon, ChecklistIcon, DollarIcon, SparklesIcon, LogoutIcon, BellIcon } from './Icons';
+import ThemeToggle from './ThemeToggle';
+import { useNotifications } from '../contexts/NotificationContext';
+import NotificationPanel from './NotificationPanel';
+
 
 interface SidebarProps {
     onLogout: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
+    const { unreadCount } = useNotifications();
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+
     return (
         <aside className="w-64 flex-shrink-0 bg-gray-900 text-gray-300 flex flex-col hidden lg:flex">
             {/* Logo */}
@@ -31,6 +38,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
                     AI Asistan
                 </a>
             </nav>
+            {/* Actions */}
+             <div className="px-4 py-2 flex items-center justify-between">
+                <ThemeToggle />
+                 <div className="relative">
+                    <button 
+                        onClick={() => setIsPanelOpen(!isPanelOpen)}
+                        className="p-2 rounded-full text-gray-400 hover:bg-gray-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900"
+                        aria-label="Bildirimleri Görüntüle"
+                    >
+                        <BellIcon className="w-6 h-6" />
+                         {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                                {unreadCount}
+                            </span>
+                        )}
+                    </button>
+                    <NotificationPanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
+                </div>
+            </div>
             {/* User Profile & Logout */}
             <div className="p-4 border-t border-gray-700">
                 <div className="flex items-center justify-between">

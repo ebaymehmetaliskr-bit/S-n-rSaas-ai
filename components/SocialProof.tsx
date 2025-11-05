@@ -2,7 +2,7 @@ import React from 'react';
 
 const Logo: React.FC<{ src: string, alt: string }> = ({ src, alt }) => (
     <img
-      className="h-10 w-auto"
+      className="h-10 w-auto dark:invert"
       src={src}
       alt={alt}
       loading="lazy"
@@ -11,9 +11,9 @@ const Logo: React.FC<{ src: string, alt: string }> = ({ src, alt }) => (
 
 const SocialProof: React.FC = () => {
   return (
-    <div className="bg-white py-12 sm:py-16">
+    <div className="bg-white dark:bg-slate-800 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <h2 className="text-center text-lg font-semibold leading-8 text-gray-900">
+        <h2 className="text-center text-lg font-semibold leading-8 text-gray-900 dark:text-slate-200">
           Tüm Global Gelir Kaynaklarınızla Uyumlu Çalışır
         </h2>
         <div className="mx-auto mt-10 grid max-w-lg grid-cols-2 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-3 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-6">

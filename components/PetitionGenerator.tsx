@@ -10,7 +10,7 @@ const InputField: React.FC<{
   placeholder: string;
 }> = ({ label, id, value, onChange, placeholder }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-500 mb-1">
+    <label htmlFor={id} className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">
       {label}
     </label>
     <input
@@ -20,7 +20,7 @@ const InputField: React.FC<{
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full bg-white border border-gray-300 rounded-md shadow-sm px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+      className="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm px-3 py-2 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
     />
   </div>
 );
@@ -139,21 +139,21 @@ const PetitionGenerator: React.FC = () => {
 
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden">
       <div className="p-6 sm:p-8">
         <div className="flex items-center mb-6">
-          <div className="bg-blue-100 p-3 rounded-lg">
-            <FileTextIcon className="h-6 w-6 text-blue-600" />
+          <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-lg">
+            <FileTextIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           </div>
           <div className="ml-4">
-            <h2 className="text-xl font-bold text-gray-900">Dilekçe Oluşturucu</h2>
-            <p className="text-sm text-gray-500">Sosyal Medya Vergi İstisnası için başvuru dilekçenizi oluşturun.</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Dilekçe Oluşturucu</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Sosyal Medya Vergi İstisnası için başvuru dilekçenizi oluşturun.</p>
           </div>
         </div>
 
-        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-4">
-                <UserIcon className="h-5 w-5 mr-2 text-gray-400"/>
+        <div className="bg-gray-50 dark:bg-slate-700/50 p-6 rounded-lg border border-gray-200 dark:border-slate-600">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-slate-200 flex items-center mb-4">
+                <UserIcon className="h-5 w-5 mr-2 text-gray-400 dark:text-slate-400"/>
                 Kullanıcı Bilgileri
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

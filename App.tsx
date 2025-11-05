@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import LandingPage from './components/LandingPage';
 import DashboardPage from './components/DashboardPage';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -14,13 +16,15 @@ function App() {
   };
 
   return (
-    <>
-      {isLoggedIn ? (
-        <DashboardPage onLogout={handleLogout} />
-      ) : (
-        <LandingPage onLogin={handleLogin} />
-      )}
-    </>
+    <ThemeProvider>
+      <NotificationProvider>
+        {isLoggedIn ? (
+          <DashboardPage onLogout={handleLogout} />
+        ) : (
+          <LandingPage onLogin={handleLogin} />
+        )}
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }
 

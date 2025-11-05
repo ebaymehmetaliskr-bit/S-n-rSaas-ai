@@ -36,7 +36,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, children }) => {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10 bg-white/50 hover:bg-white/80 rounded-full p-1"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-white transition-colors z-10 bg-white/50 dark:bg-slate-600/50 hover:bg-white/80 dark:hover:bg-slate-600/80 rounded-full p-1"
           aria-label="Kapat"
         >
           <XIcon className="h-6 w-6" />

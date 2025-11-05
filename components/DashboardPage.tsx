@@ -8,7 +8,7 @@ interface DashboardPageProps {
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-slate-900">
       <Sidebar onLogout={onLogout} />
       <Dashboard />
     </div>

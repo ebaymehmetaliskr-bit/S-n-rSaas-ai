@@ -38,3 +38,12 @@ export interface ChatMessage {
   text: string;
   sender: 'user' | 'ai';
 }
+
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  read: boolean;
+  timestamp: string;
+  type: 'success' | 'warning' | 'info';
+}
