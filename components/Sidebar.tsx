@@ -7,11 +7,20 @@ import NotificationPanel from './NotificationPanel';
 
 interface SidebarProps {
     onLogout: () => void;
+    activeSection: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeSection }) => {
     const { unreadCount } = useNotifications();
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+    const navItems = [
+        { id: 'home', name: 'Panelim', href: '#home', icon: HomeIcon },
+        { id: 'task-list', name: 'Görev Listem', href: '#task-list', icon: ChecklistIcon },
+        { id: 'income-tracker', name: 'Gelir Takibi', href: '#income-tracker', icon: DollarIcon },
+        { id: 'ai-assistant', name: 'AI Asistan', href: '#ai-assistant', icon: SparklesIcon },
+    ];
+
 
     return (
         <aside className="w-64 flex-shrink-0 bg-gray-900 text-gray-300 flex flex-col hidden lg:flex">
@@ -21,22 +30,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
             </div>
             {/* Navigation Links */}
             <nav className="flex-1 px-2 py-4 space-y-2">
-                <a href="#" className="flex items-center px-4 py-2.5 rounded-md bg-gray-800 text-white font-medium">
-                    <HomeIcon className="w-5 h-5 mr-3" />
-                    Panelim
-                </a>
-                <a href="#" className="flex items-center px-4 py-2.5 rounded-md hover:bg-gray-800 hover:text-white">
-                    <ChecklistIcon className="w-5 h-5 mr-3" />
-                    Görev Listem
-                </a>
-                <a href="#" className="flex items-center px-4 py-2.5 rounded-md hover:bg-gray-800 hover:text-white">
-                    <DollarIcon className="w-5 h-5 mr-3" />
-                    Gelir Takibi
-                </a>
-                <a href="#" className="flex items-center px-4 py-2.5 rounded-md hover:bg-gray-800 hover:text-white">
-                    <SparklesIcon className="w-5 h-5 mr-3" />
-                    AI Asistan
-                </a>
+                {navItems.map(item => {
+                    const isActive = activeSection === item.id;
+                    return (
+                         <a
+                            key={item.id}
+                            href={item.href}
+                            className={`flex items-center px-4 py-2.5 rounded-md transition-colors duration-200 ${
+                                isActive
+                                ? 'bg-gray-800 text-white font-medium'
+                                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                            }`}
+                        >
+                            <item.icon className="w-5 h-5 mr-3" />
+                            {item.name}
+                        </a>
+                    )
+                })}
             </nav>
             {/* Actions */}
              <div className="px-4 py-2 flex items-center justify-between">

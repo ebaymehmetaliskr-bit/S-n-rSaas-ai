@@ -4,6 +4,7 @@ import Modal from './Modal';
 import PetitionGenerator from './PetitionGenerator';
 import { IncomeEntry, Task, ChatMessage } from '../types';
 import { useNotifications } from '../contexts/NotificationContext';
+import ExchangeRateBot from './ExchangeRateBot';
 
 const EXEMPTION_LIMIT = 1900000;
 
@@ -94,8 +95,11 @@ const AddIncomeModal: React.FC<{
     )
 }
 
+interface DashboardProps {
+    setActiveSection: (section: string) => void;
+}
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ setActiveSection }) => {
     const [isPetitionModalOpen, setIsPetitionModalOpen] = useState(false);
     const [isAddIncomeModalOpen, setIsAddIncomeModalOpen] = useState(false);
     const { addNotification } = useNotifications();
@@ -115,6 +119,13 @@ const Dashboard: React.FC = () => {
     const [isAiThinking, setIsAiThinking] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    // Refs for IntersectionObserver
+    const homeRef = useRef<HTMLHeadingElement>(null);
+    const taskListRef = useRef<HTMLDivElement>(null);
+    const aiAssistantRef = useRef<HTMLDivElement>(null);
+    const incomeTrackerRef = useRef<HTMLDivElement>(null);
+
+
     // Simulate initial notifications on mount
     useEffect(() => {
         // Use a timeout to let the UI render first, feels more natural
@@ -129,6 +140,43 @@ const Dashboard: React.FC = () => {
         return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    
+    // Intersection Observer for section highlighting
+    useEffect(() => {
+        const trackedSections = [
+            { id: 'home', ref: homeRef },
+            { id: 'task-list', ref: taskListRef },
+            { id: 'ai-assistant', ref: aiAssistantRef },
+            { id: 'income-tracker', ref: incomeTrackerRef },
+        ];
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const intersectingEntry = entries.find(entry => entry.isIntersecting);
+                if (intersectingEntry) {
+                    setActiveSection(intersectingEntry.target.id);
+                }
+            },
+            {
+                rootMargin: '-40% 0px -60% 0px', // Trigger when section is in the middle 40% of the screen
+                threshold: 0,
+            }
+        );
+
+        trackedSections.forEach(section => {
+            if (section.ref.current) {
+                observer.observe(section.ref.current);
+            }
+        });
+
+        return () => {
+             trackedSections.forEach(section => {
+                if (section.ref.current) {
+                    observer.unobserve(section.ref.current);
+                }
+            });
+        };
+    }, [setActiveSection]);
 
 
     const totalIncomeTRY = useMemo(() => {
@@ -184,8 +232,8 @@ const Dashboard: React.FC = () => {
 
     return (
         <>
-            <main className="flex-1 h-screen overflow-y-auto p-6 md:p-10">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Panelim</h1>
+            <main className="flex-1 h-screen overflow-y-auto p-6 md:p-10 scroll-smooth">
+                <h1 ref={homeRef} id="home" className="text-3xl font-bold text-gray-900 dark:text-slate-100 scroll-mt-20">Panelim</h1>
                 <p className="mt-1 text-gray-600 dark:text-slate-400">Merhaba Ahmet, istisna sürecine genel bakışın burada.</p>
 
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -210,7 +258,7 @@ const Dashboard: React.FC = () => {
                     </div>
 
                     {/* Task List Widget */}
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700">
+                    <div ref={taskListRef} id="task-list" className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 scroll-mt-20">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Kurulum Görev Listeniz</h2>
                         <ul className="mt-4 space-y-4">
                             {tasks.map((task, index) => (
@@ -235,54 +283,59 @@ const Dashboard: React.FC = () => {
                         </ul>
                     </div>
 
-                    {/* AI Assistant Widget */}
-                    <div className="lg:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 flex flex-col">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">AI Vergi Asistanı</h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">GİB kaynaklarına göre yanıtlıyorum.</p>
-                        
-                        <div className="mt-4 flex-1 flex flex-col-reverse overflow-y-auto bg-gray-50 dark:bg-slate-900/50 p-3 rounded-lg min-h-[200px]">
-                            <div ref={chatEndRef} />
-                            {isAiThinking && (
-                                <div className="flex items-start space-x-2.5 p-2">
-                                    <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded-full">
-                                        <BotIcon className="w-5 h-5 text-gray-500 dark:text-slate-400"/>
-                                    </div>
-                                    <div className="bg-gray-200 dark:bg-slate-700 rounded-lg p-2.5">
-                                       <LoaderIcon className="w-5 h-5 text-gray-500 dark:text-slate-400 animate-spin"/>
-                                    </div>
-                                </div>
-                            )}
-                            {chatMessages.slice().reverse().map((msg) => (
-                               <div key={msg.id} className={`flex items-start space-x-2.5 p-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
-                                    {msg.sender === 'ai' && (
-                                        <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded-full">
-                                             <BotIcon className="w-5 h-5 text-gray-500 dark:text-slate-400"/>
-                                        </div>
-                                    )}
-                                    <div className={`max-w-xs break-words rounded-lg p-2.5 text-sm ${msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200'}`}>
-                                        {msg.text}
-                                    </div>
-                                    {msg.sender === 'user' && (
-                                        <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded-full">
-                                             <UserIcon className="w-5 h-5 text-gray-500 dark:text-slate-400"/>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                    {/* Right Column for Bots */}
+                    <div ref={aiAssistantRef} id="ai-assistant" className="lg:col-span-1 flex flex-col gap-6 scroll-mt-20">
+                        <ExchangeRateBot />
 
-                        <div className="mt-4">
-                            <form onSubmit={handleSendMessage} className="flex space-x-2">
-                                <input type="text" value={userInput} onChange={e => setUserInput(e.target.value)} placeholder="Sorunuzu yazın..." className="flex-1 px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-slate-100" />
-                                <button type="submit" disabled={isAiThinking} className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
-                                    <SendIcon className="w-5 h-5" />
-                                </button>
-                            </form>
+                        {/* AI Assistant Widget */}
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 flex flex-col">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">AI Vergi Asistanı</h2>
+                            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">GİB kaynaklarına göre yanıtlıyorum.</p>
+                            
+                            <div className="mt-4 flex-1 flex flex-col-reverse overflow-y-auto bg-gray-50 dark:bg-slate-900/50 p-3 rounded-lg min-h-[200px]">
+                                <div ref={chatEndRef} />
+                                {isAiThinking && (
+                                    <div className="flex items-start space-x-2.5 p-2">
+                                        <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded-full">
+                                            <BotIcon className="w-5 h-5 text-gray-500 dark:text-slate-400"/>
+                                        </div>
+                                        <div className="bg-gray-200 dark:bg-slate-700 rounded-lg p-2.5">
+                                           <LoaderIcon className="w-5 h-5 text-gray-500 dark:text-slate-400 animate-spin"/>
+                                        </div>
+                                    </div>
+                                )}
+                                {chatMessages.slice().reverse().map((msg) => (
+                                   <div key={msg.id} className={`flex items-start space-x-2.5 p-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+                                        {msg.sender === 'ai' && (
+                                            <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded-full">
+                                                 <BotIcon className="w-5 h-5 text-gray-500 dark:text-slate-400"/>
+                                            </div>
+                                        )}
+                                        <div className={`max-w-xs break-words rounded-lg p-2.5 text-sm ${msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200'}`}>
+                                            {msg.text}
+                                        </div>
+                                        {msg.sender === 'user' && (
+                                            <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded-full">
+                                                 <UserIcon className="w-5 h-5 text-gray-500 dark:text-slate-400"/>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-4">
+                                <form onSubmit={handleSendMessage} className="flex space-x-2">
+                                    <input type="text" value={userInput} onChange={e => setUserInput(e.target.value)} placeholder="Sorunuzu yazın..." className="flex-1 px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-slate-100" />
+                                    <button type="submit" disabled={isAiThinking} className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+                                        <SendIcon className="w-5 h-5" />
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     
                     {/* Income Tracker Widget */}
-                    <div id="income-tracker" className="lg:col-span-3 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 scroll-mt-20">
+                    <div ref={incomeTrackerRef} id="income-tracker" className="lg:col-span-3 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 scroll-mt-20">
                         <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Gelir Takibi</h2>
                             <button onClick={() => setIsAddIncomeModalOpen(true)} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">

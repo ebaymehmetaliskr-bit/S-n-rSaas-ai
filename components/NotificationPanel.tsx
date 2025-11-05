@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { BellIcon, CheckCircleIcon, SparklesIcon } from './Icons';
+// Fix: Import the 'Notification' type to resolve ambiguity with the global Notification API.
+import { Notification } from '../types';
 
 interface NotificationPanelProps {
     isOpen: boolean;
