@@ -2,11 +2,19 @@ import { UserProfile } from '../types';
 
 /**
  * Bu servis, backend API'si ile olan tüm kimlik doğrulama iletişimini yönetir.
- * Başlangıçta, backend hazır olana kadar sahte (mock) verilerle çalışacaktır.
+ * Artık sahte (mock) veriler yerine gerçek backend endpoint'ine bağlanıyoruz.
  */
 
-// Sahte bir veritabanı veya API çağrısını simüle etmek için bir gecikme fonksiyonu
-const fakeNetworkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
+// ===================================================================================
+// DİKKAT! LÜTFEN BU DEĞİŞKENİ GÜNCELLEYİN!
+// ===================================================================================
+// Replit'te backend projenizi çalıştırdıktan sonra, Replit'in size verdiği
+// canlı sunucu URL'sini (genellikle `https://[proje-adı].[kullanıcı-adı].replit.dev` 
+// şeklinde olur) aşağıdaki değişkene atayın.
+const API_BASE_URL = 'https://fast-api-ebaymehmetalisk.replit.app';
+// Örnek: const API_BASE_URL = 'https://sinirsaas-backend.mehmet.replit.dev';
+// ===================================================================================
+
 
 /**
  * Yeni bir kullanıcıyı sisteme kaydeder.
@@ -14,18 +22,42 @@ const fakeNetworkDelay = (ms: number) => new Promise(res => setTimeout(res, ms))
  * @returns Kayıtlı kullanıcı profili (şifre olmadan).
  */
 export const register = async (profile: UserProfile): Promise<Omit<UserProfile, 'password'>> => {
-    console.log('authService: Kullanıcı kaydediliyor...', profile);
-    
-    // 1.5 saniyelik bir ağ gecikmesini simüle et
-    await fakeNetworkDelay(1500);
+    console.log('authService: API endpointine kullanıcı kaydediliyor...', profile);
 
-    // Gerçek bir API'de, burada bir hata oluşma ihtimali de olurdu.
-    // Örneğin: if (Math.random() > 0.8) throw new Error("Kayıt başarısız oldu. Lütfen tekrar deneyin.");
+    // API_BASE_URL'in hala varsayılan değerde olup olmadığını kontrol et
+    if (API_BASE_URL.includes('your-username')) {
+        const errorMessage = 'API_BASE_URL ayarlanmamış. Lütfen services/authService.ts dosyasındaki adresi kendi Replit URL\'niz ile güncelleyin.';
+        alert(errorMessage);
+        throw new Error(errorMessage);
+    }
 
-    // Başarılı olduğunda, güvenlik gereği şifreyi yanıttan kaldır.
-    const { password, ...registeredUser } = profile;
+    const response = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(profile),
+    });
+
+    if (!response.ok) {
+        // Sunucudan gelen hata mesajını yakalamaya çalış
+        try {
+            const errorData = await response.json();
+            // FastAPI'nin validation hataları genelde "detail" alanında gelir
+            const errorMessage = errorData.detail || `Sunucu hatası: ${response.status} ${response.statusText}`;
+            throw new Error(errorMessage);
+        } catch (e) {
+            // Eğer sunucudan JSON formatında bir hata gelmezse, genel bir hata fırlat
+            throw new Error(`Ağ isteği başarısız oldu: ${response.status} ${response.statusText}`);
+        }
+    }
+
+    // Başarılı olduğunda, sunucudan gelen kullanıcı verisini JSON olarak al.
+    // Backend'in güvenlik gereği şifreyi DÖNDERMEMESİ beklenir.
+    const registeredUser = await response.json();
     
-    console.log('authService: Kullanıcı başarıyla kaydedildi.', registeredUser);
+    console.log('authService: Kullanıcı API üzerinden başarıyla kaydedildi.', registeredUser);
     
     return registeredUser;
 };
