@@ -28,9 +28,10 @@ const InputField: React.FC<{
 
 interface PetitionGeneratorProps {
     userProfile: UserProfile;
+    triggerDownload?: boolean;
 }
 
-const PetitionGenerator: React.FC<PetitionGeneratorProps> = ({ userProfile: initialProfile }) => {
+const PetitionGenerator: React.FC<PetitionGeneratorProps> = ({ userProfile: initialProfile, triggerDownload = false }) => {
   const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -137,6 +138,12 @@ const PetitionGenerator: React.FC<PetitionGeneratorProps> = ({ userProfile: init
       setIsLoading(false);
     }
   }, [userProfile]);
+
+  useEffect(() => {
+    if (triggerDownload) {
+        handleGeneratePetition();
+    }
+  }, [triggerDownload, handleGeneratePetition]);
 
 
   return (

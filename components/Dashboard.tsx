@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { BotIcon, CheckCircleIcon, LoaderIcon, SendIcon, UserIcon, XIcon } from './Icons';
+import { BotIcon, CheckCircleIcon, DownloadIcon, LoaderIcon, SendIcon, UserIcon, XIcon } from './Icons';
 import Modal from './Modal';
 import PetitionGenerator from './PetitionGenerator';
 import { IncomeEntry, Task, ChatMessage, UserProfile, NewIncomeEntry } from '../types';
@@ -103,6 +103,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) => {
     const [isPetitionModalOpen, setIsPetitionModalOpen] = useState(false);
     const [isAddIncomeModalOpen, setIsAddIncomeModalOpen] = useState(false);
+    const [triggerPetitionDownload, setTriggerPetitionDownload] = useState(false);
     const { addNotification } = useNotifications();
     
     // Income state managed with API data
@@ -255,12 +256,29 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages, isAiThinking]);
 
+    const handleDirectDownload = () => {
+        setIsPetitionModalOpen(true);
+        setTriggerPetitionDownload(true);
+    };
+
 
     return (
         <>
             <main className="flex-1 h-screen overflow-y-auto p-6 md:p-10 scroll-smooth">
-                <h1 ref={homeRef} id="home" className="text-3xl font-bold text-gray-900 dark:text-slate-100 scroll-mt-20">Panelim</h1>
-                <p className="mt-1 text-gray-600 dark:text-slate-400">Merhaba {userProfile.firstName}, istisna sürecine genel bakışın burada.</p>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <div>
+                        <h1 ref={homeRef} id="home" className="text-3xl font-bold text-gray-900 dark:text-slate-100 scroll-mt-20">Panelim</h1>
+                        <p className="mt-1 text-gray-600 dark:text-slate-400">Merhaba {userProfile.firstName}, istisna sürecine genel bakışın burada.</p>
+                    </div>
+                     <button
+                        onClick={handleDirectDownload}
+                        className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105"
+                    >
+                        <DownloadIcon className="w-5 h-5 -ml-1 mr-2" />
+                        Dilekçeyi Hemen İndir
+                    </button>
+                </div>
+
 
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Exemption Tracker Widget */}
@@ -450,8 +468,14 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
             </main>
             
             {/* Modal for Petition Generator */}
-            <Modal isOpen={isPetitionModalOpen} onClose={() => setIsPetitionModalOpen(false)}>
-                <PetitionGenerator userProfile={userProfile} />
+            <Modal
+                isOpen={isPetitionModalOpen}
+                onClose={() => {
+                    setIsPetitionModalOpen(false);
+                    setTriggerPetitionDownload(false);
+                }}
+            >
+                <PetitionGenerator userProfile={userProfile} triggerDownload={triggerPetitionDownload} />
             </Modal>
             
             {/* Modal for Adding Income */}
