@@ -1,4 +1,4 @@
-import { UserProfile } from '../types';
+import { UserProfile, LoginCredentials } from '../types';
 
 /**
  * Bu servis, backend API'si ile olan tüm kimlik doğrulama iletişimini yönetir.
@@ -11,7 +11,7 @@ import { UserProfile } from '../types';
 // Replit'te backend projenizi çalıştırdıktan sonra, Replit'in size verdiği
 // canlı sunucu URL'sini (genellikle `https://[proje-adı].[kullanıcı-adı].replit.dev` 
 // şeklinde olur) aşağıdaki değişkene atayın.
-const API_BASE_URL = 'https://fast-api-ebaymehmetalisk.replit.app';
+export const API_BASE_URL = 'https://fast-api-ebaymehmetalisk.replit.app';
 // Örnek: const API_BASE_URL = 'https://sinirsaas-backend.mehmet.replit.dev';
 // ===================================================================================
 
@@ -60,4 +60,42 @@ export const register = async (profile: UserProfile): Promise<Omit<UserProfile, 
     console.log('authService: Kullanıcı API üzerinden başarıyla kaydedildi.', registeredUser);
     
     return registeredUser;
+};
+
+/**
+ * Mevcut bir kullanıcıyı sisteme giriş yaptırır.
+ * @param credentials - E-posta ve şifre bilgileri.
+ * @returns Giriş yapan kullanıcının profil bilgileri.
+ */
+export const login = async (credentials: LoginCredentials): Promise<UserProfile> => {
+    console.log('authService: Kullanıcı giriş yapıyor...', credentials.email);
+
+    if (API_BASE_URL.includes('your-username')) {
+        const errorMessage = 'API_BASE_URL ayarlanmamış. Lütfen services/authService.ts dosyasındaki adresi kendi Replit URL\'niz ile güncelleyin.';
+        alert(errorMessage);
+        throw new Error(errorMessage);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+         try {
+            const errorData = await response.json();
+            const errorMessage = errorData.detail || `Sunucu hatası: ${response.status} ${response.statusText}`;
+            throw new Error(errorMessage);
+        } catch (e) {
+            throw new Error(`Ağ isteği başarısız oldu: ${response.status} ${response.statusText}`);
+        }
+    }
+
+    const userProfile = await response.json();
+    console.log('authService: Kullanıcı başarıyla giriş yaptı.', userProfile);
+    return userProfile;
 };

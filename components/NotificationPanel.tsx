@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { BellIcon, CheckCircleIcon, SparklesIcon } from './Icons';
-// Fix: Import the 'Notification' type to resolve ambiguity with the global Notification API.
-import { Notification } from '../types';
+import { AppNotification } from '../types';
 
 interface NotificationPanelProps {
     isOpen: boolean;
@@ -29,7 +28,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }
     }, [isOpen, onClose]);
 
 
-    const getTypeIcon = (type: Notification['type']) => {
+    const getTypeIcon = (type: AppNotification['type']) => {
         switch (type) {
             case 'success':
                 return <CheckCircleIcon className="h-5 w-5 text-green-500" />;

@@ -8,6 +8,13 @@ export interface UserProfile {
   phone: string;
   email: string;
   password?: string; // Optional as we won't store it in frontend state long-term
+  incomeSource?: string;
+  companyStatus?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
 }
 
 export interface ExchangeRate {
@@ -27,6 +34,8 @@ export interface IncomeEntry {
   tryValue: number;
 }
 
+export type NewIncomeEntry = Omit<IncomeEntry, 'id'>;
+
 export interface Task {
   id: number;
   text: string;
@@ -41,7 +50,7 @@ export interface ChatMessage {
   sender: 'user' | 'ai';
 }
 
-export interface Notification {
+export interface AppNotification {
   id: number;
   title: string;
   message: string;

@@ -4,6 +4,7 @@ import Wizard from './Wizard';
 import SocialProof from './SocialProof';
 import ThemeToggle from './ThemeToggle';
 import { UserProfile } from '../types';
+import LoginForm from './LoginForm';
 
 interface LandingPageProps {
   onLogin: (profile: UserProfile) => void;
@@ -11,6 +12,7 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const handleStartWizard = () => {
     setIsWizardOpen(true);
@@ -18,9 +20,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   
   const handleWizardComplete = (profile: UserProfile) => {
     setIsWizardOpen(false);
-    // Simulate a successful registration by logging the user in with the profile data
     onLogin(profile);
   };
+
+  const handleLoginSuccess = (profile: UserProfile) => {
+    setIsLoginModalOpen(false);
+    onLogin(profile);
+  }
 
   return (
     <>
@@ -35,7 +41,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <div className="hidden md:flex md:items-center md:space-x-8">
                 <a href="#features" className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Özellikler</a>
                 <a href="#" className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Fiyatlandırma</a>
-                <button onClick={() => alert("Login modal will be implemented in the next step.")} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Giriş Yap</button>
+                <button onClick={() => setIsLoginModalOpen(true)} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Giriş Yap</button>
                 <ThemeToggle />
                 <button onClick={handleStartWizard} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
                   ÜCRETSİZ TESTE BAŞLA
@@ -180,6 +186,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       
       <Modal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)}>
         <Wizard onComplete={handleWizardComplete} onClose={() => setIsWizardOpen(false)} />
+      </Modal>
+
+      <Modal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)}>
+        <LoginForm onLoginSuccess={handleLoginSuccess} />
       </Modal>
     </>
   );

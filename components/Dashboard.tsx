@@ -2,9 +2,10 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { BotIcon, CheckCircleIcon, LoaderIcon, SendIcon, UserIcon, XIcon } from './Icons';
 import Modal from './Modal';
 import PetitionGenerator from './PetitionGenerator';
-import { IncomeEntry, Task, ChatMessage, UserProfile } from '../types';
+import { IncomeEntry, Task, ChatMessage, UserProfile, NewIncomeEntry } from '../types';
 import { useNotifications } from '../contexts/NotificationContext';
 import ExchangeRateBot from './ExchangeRateBot';
+import * as incomeService from '../services/incomeService';
 
 const EXEMPTION_LIMIT = 1900000;
 
@@ -27,7 +28,7 @@ const initialTasks: Task[] = [
 
 const AddIncomeModal: React.FC<{
     onClose: () => void;
-    onAddIncome: (entry: IncomeEntry) => void;
+    onAddIncome: (entry: NewIncomeEntry) => void;
 }> = ({ onClose, onAddIncome }) => {
     const [newAmount, setNewAmount] = useState('');
     const [newCurrency, setNewCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD');
@@ -43,8 +44,7 @@ const AddIncomeModal: React.FC<{
         }
 
         const exchangeRate = MOCK_RATES[newCurrency];
-        const newEntry: IncomeEntry = {
-            id: Date.now(),
+        const newEntry: NewIncomeEntry = {
             date: newDate,
             description: newDescription.trim(),
             amount: amount,
@@ -105,11 +105,10 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
     const [isAddIncomeModalOpen, setIsAddIncomeModalOpen] = useState(false);
     const { addNotification } = useNotifications();
     
-    const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([
-        { id: 1, date: '2025-11-01', description: 'Gumroad Satışı #123', amount: 5000, currency: 'USD', exchangeRate: 30.50, tryValue: 152500 },
-        { id: 2, date: '2025-11-03', description: 'Stripe Ödemesi #ABC', amount: 8000, currency: 'EUR', exchangeRate: 33.00, tryValue: 264000 },
-        { id: 3, date: '2025-11-05', description: 'Patreon Destek', amount: 1000, currency: 'USD', exchangeRate: 31.00, tryValue: 31000 },
-    ]);
+    // Income state managed with API data
+    const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
+    const [isIncomeLoading, setIsIncomeLoading] = useState(true);
+    const [incomeError, setIncomeError] = useState<string | null>(null);
 
     // Task list state
     const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -126,10 +125,26 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
     const aiAssistantRef = useRef<HTMLDivElement>(null);
     const incomeTrackerRef = useRef<HTMLDivElement>(null);
 
+    // Fetch income data from API on component mount
+    useEffect(() => {
+        const fetchIncome = async () => {
+            try {
+                setIsIncomeLoading(true);
+                setIncomeError(null);
+                const data = await incomeService.getIncomeEntries();
+                setIncomeEntries(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            } catch (error) {
+                console.error("Failed to fetch income entries:", error);
+                setIncomeError("Gelir verileri yüklenemedi. Lütfen daha sonra tekrar deneyin.");
+            } finally {
+                setIsIncomeLoading(false);
+            }
+        };
+        fetchIncome();
+    }, []);
 
     // Simulate initial notifications on mount
     useEffect(() => {
-        // Use a timeout to let the UI render first, feels more natural
         const timer = setTimeout(() => {
              addNotification({
                 title: 'Önemli Hatırlatma',
@@ -159,7 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
                 }
             },
             {
-                rootMargin: '-40% 0px -60% 0px', // Trigger when section is in the middle 40% of the screen
+                rootMargin: '-40% 0px -60% 0px',
                 threshold: 0,
             }
         );
@@ -190,8 +205,18 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
     
     const remainingAmount = useMemo(() => EXEMPTION_LIMIT - totalIncomeTRY, [totalIncomeTRY]);
 
-    const handleAddIncome = (newEntry: IncomeEntry) => {
-        setIncomeEntries(prevEntries => [newEntry, ...prevEntries]);
+    const handleAddIncome = async (newEntry: NewIncomeEntry) => {
+        try {
+            const addedEntry = await incomeService.addIncomeEntry(newEntry);
+            setIncomeEntries(prevEntries => [addedEntry, ...prevEntries]);
+        } catch (error) {
+            console.error("Failed to add income entry:", error);
+            addNotification({
+                title: 'Hata',
+                message: 'Yeni gelir eklenemedi. Lütfen tekrar deneyin.',
+                type: 'warning',
+            });
+        }
     };
 
     const handleCompleteTask = (taskId: number) => {
@@ -359,14 +384,37 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveSection, userProfile }) 
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
-                                                {incomeEntries.map((entry) => (
-                                                    <tr key={entry.id}>
-                                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-slate-200 sm:pl-6">{new Date(entry.date).toLocaleDateString('tr-TR')}</td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-slate-400">{entry.description}</td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-slate-400">{entry.amount.toFixed(2)} {entry.currency} <span className="text-xs text-gray-400 dark:text-slate-500">(@{entry.exchangeRate.toFixed(2)})</span></td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-700 dark:text-slate-300">{formatCurrency(entry.tryValue)}</td>
+                                                {isIncomeLoading ? (
+                                                    <tr>
+                                                        <td colSpan={4} className="text-center p-5 text-gray-500 dark:text-slate-400">
+                                                            <div className="flex items-center justify-center">
+                                                                <LoaderIcon className="w-6 h-6 animate-spin mr-2" />
+                                                                Gelirler yükleniyor...
+                                                            </div>
+                                                        </td>
                                                     </tr>
-                                                ))}
+                                                ) : incomeError ? (
+                                                    <tr>
+                                                        <td colSpan={4} className="text-center p-5 text-red-500 font-medium">
+                                                            {incomeError}
+                                                        </td>
+                                                    </tr>
+                                                ) : incomeEntries.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={4} className="text-center p-5 text-gray-500 dark:text-slate-400">
+                                                            Henüz gelir eklenmemiş.
+                                                        </td>
+                                                    </tr>
+                                                ) : (
+                                                    incomeEntries.map((entry) => (
+                                                        <tr key={entry.id}>
+                                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-slate-200 sm:pl-6">{new Date(entry.date).toLocaleDateString('tr-TR')}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-slate-400">{entry.description}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-slate-400">{entry.amount.toFixed(2)} {entry.currency} <span className="text-xs text-gray-400 dark:text-slate-500">(@{entry.exchangeRate.toFixed(2)})</span></td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-700 dark:text-slate-300">{formatCurrency(entry.tryValue)}</td>
+                                                        </tr>
+                                                    ))
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
